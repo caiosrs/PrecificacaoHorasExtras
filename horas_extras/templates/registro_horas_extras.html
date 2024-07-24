@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Registro de Horas Extras{% endblock %}
+
+{% block content %}
+    {% load static %}
+    <h1 class="mt-5">Registro de Horas Extras</h1>
+    <form method="post" id="registro-form" class="mt-3" style="padding: 20px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_nome_funcionario">Nome Funcionário</label>
+            <input type="text" class="form-control" id="id_nome_funcionario" name="nome_funcionario" placeholder="Comece a digitar o nome...">
+            <div id="autocomplete-suggestions" class="autocomplete-suggestions"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="id_dias_uteis">Dias Úteis</label>
+                <input type="number" class="form-control" id="id_dias_uteis" name="dias_uteis">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="id_dsr">DSR</label>
+                <input type="number" class="form-control" id="id_dsr" name="dsr">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label>Horas Extras 60%</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="he60_qtde" aria-label="he60_qtde" placeholder="Quantidade">
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <label>Horas Extras 80%</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="he80_qtde" aria-label="he80_qtde" placeholder="Quantidade">
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label>Horas Extras 80% Noturno</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="he80_qtde_noturno" aria-label="he80_qtde_noturno" placeholder="Quantidade">
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <label>Horas Extras 100%</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="he100_qtde" aria-label="he100_qtde" placeholder="Quantidade">
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary" id="calcular-btn" data-toggle="modal" data-target="#calcularModal">Calcular</button>
+    </form>
+
+    <!-- Modal -->
+    <div class="modal fade" id="calcularModal" tabindex="-1" role="dialog" aria-labelledby="calcularModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="calcularModalLabel">Resultado do Cálculo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Reflexo DSR</td>
+                                <td id="refl-dsr"></td>
+                            </tr>
+                            <tr>
+                                <td>Total de Horas Extras</td>
+                                <td id="total-he"></td>
+                            </tr>
+                            <tr>
+                                <td>Décimo Terceiro</td>
+                                <td id="decimo-terceiro"></td>
+                            </tr>
+                            <tr>
+                                <td>Férias</td>
+                                <td id="ferias"></td>
+                            </tr>
+                            <tr>
+                                <td>Um Terço das Férias</td>
+                                <td id="um-terco-ferias"></td>
+                            </tr>
+                            <tr>
+                                <td>FGTS</td>
+                                <td id="fgts"></td>
+                            </tr>
+                            <tr>
+                                <td>Férias Faturado</td>
+                                <td id="ferias-faturado"></td>
+                            </tr>
+                            <tr>
+                                <td>Décimo Terceiro Faturado</td>
+                                <td id="decimo-terceiro-faturado"></td>
+                            </tr>
+                            <tr>
+                                <td>INSS</td>
+                                <td id="inss"></td>
+                            </tr>
+                            <tr>
+                                <td>FGTS Faturado</td>
+                                <td id="fgts-faturado"></td>
+                            </tr>
+                            <tr>
+                                <td>Total Faturado</td>
+                                <td id="total-faturado"></td>
+                            </tr>
+                            <tr>
+                                <td>FGTS 40%</td>
+                                <td id="fgst-40"></td>
+                            </tr>
+                            <tr>
+                                <td>Total Absoluto</td>
+                                <td id="total-absoluto"></td>
+                            </tr>
+                            <tr>
+                                <td>Valor da Nota</td>
+                                <td id="valor-nota"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-success" id="download-excel">Salvar em Excel</button>
+                    <button id="salvar-pdf" class="btn btn-primary">Salvar em PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adiciona os scripts do Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJTy5KVphtPhzWj9WO1clHTMGaNSjkq6m56jUMz5sgF86f11Y" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-pjaaA8dDz/4+6bghyIedp5j00VXIikPoE4A1p6LY4DmlO8RAf2zR9CfbERZ6D5Fm" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('id_nome_funcionario');
+            const suggestionsContainer = document.getElementById('autocomplete-suggestions');
+            let currentFocus = -1;
+    
+            const names = {{ names|safe }};
+    
+            function getSuggestions(query) {
+                return names.filter(name => name.toLowerCase().includes(query.toLowerCase()));
+            }
+    
+            function renderSuggestions(suggestions) {
+                suggestionsContainer.innerHTML = '';
+                currentFocus = -1;
+                suggestions.forEach((suggestion, index) => {
+                    const div = document.createElement('div');
+                    div.textContent = suggestion;
+                    div.classList.add('autocomplete-suggestion');
+                    div.addEventListener('click', () => {
+                        input.value = suggestion;
+                        suggestionsContainer.innerHTML = '';
+                    });
+                    div.addEventListener('mouseover', () => {
+                        currentFocus = index;
+                        updateSuggestionHighlight();
+                    });
+                    suggestionsContainer.appendChild(div);
+                });
+            }
+    
+            function updateSuggestionHighlight() {
+                const items = suggestionsContainer.querySelectorAll('.autocomplete-suggestion');
+                items.forEach((item, index) => {
+                    item.classList.toggle('highlight', index === currentFocus);
+                });
+            }
+    
+            input.addEventListener('input', () => {
+                const query = input.value;
+                if (query.length >= 3) {
+                    const suggestions = getSuggestions(query);
+                    renderSuggestions(suggestions);
+                } else {
+                    suggestionsContainer.innerHTML = '';
+                }
+            });
+    
+            input.addEventListener('keydown', (e) => {
+                const items = suggestionsContainer.querySelectorAll('.autocomplete-suggestion');
+                if (e.key === 'ArrowDown') {
+                    currentFocus++;
+                    if (currentFocus >= items.length) currentFocus = 0;
+                    updateSuggestionHighlight();
+                    input.value = items[currentFocus] ? items[currentFocus].textContent : '';
+                } else if (e.key === 'ArrowUp') {
+                    currentFocus--;
+                    if (currentFocus < 0) currentFocus = items.length - 1;
+                    updateSuggestionHighlight();
+                    input.value = items[currentFocus] ? items[currentFocus].textContent : '';
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        if (items[currentFocus]) {
+                            items[currentFocus].click();
+                        }
+                    }
+                }
+            });
+    
+            function formatNumber(value) {
+                if (typeof value === 'number') {
+                    return value.toFixed(2).replace('.', ',');
+                }
+                return value;
+            }
+    
+            document.getElementById('calcular-btn').addEventListener('click', () => {
+                const form = document.getElementById('registro-form');
+                const formData = new FormData(form);
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '{% url "registro_horas_extras" %}', true);
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+    
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const result = JSON.parse(xhr.responseText);
+    
+                        document.getElementById('refl-dsr').textContent = formatNumber(result['Reflexo DSR']) || 'N/A';
+                        document.getElementById('total-he').textContent = formatNumber(result['Total de Horas Extras']) || 'N/A';
+                        document.getElementById('decimo-terceiro').textContent = formatNumber(result['Décimo Terceiro']) || 'N/A';
+                        document.getElementById('ferias').textContent = formatNumber(result['Férias']) || 'N/A';
+                        document.getElementById('um-terco-ferias').textContent = formatNumber(result['1/3 de Férias']) || 'N/A';
+                        document.getElementById('fgts').textContent = formatNumber(result['FGTS']) || 'N/A';
+                        document.getElementById('ferias-faturado').textContent = formatNumber(result['Férias Faturado']) || 'N/A';
+                        document.getElementById('decimo-terceiro-faturado').textContent = formatNumber(result['Décimo Terceiro Faturado']) || 'N/A';
+                        document.getElementById('inss').textContent = formatNumber(result['INSS']) || 'N/A';
+                        document.getElementById('fgts-faturado').textContent = formatNumber(result['FGTS Faturado']) || 'N/A';
+                        document.getElementById('total-faturado').textContent = formatNumber(result['Total Faturado']) || 'N/A';
+                        document.getElementById('fgst-40').textContent = formatNumber(result['FGTS 40%']) || 'N/A';
+                        document.getElementById('total-absoluto').textContent = formatNumber(result['Total Absoluto']) || 'N/A';
+                        document.getElementById('valor-nota').textContent = formatNumber(result['Valor da Nota']) || 'N/A';
+    
+                        $('#calcularModal').modal('show');
+                    } else {
+                        console.error('Falha na requisição:', xhr.statusText);
+                    }
+                };
+    
+                const params = new URLSearchParams();
+                formData.forEach((value, key) => params.append(key, value));
+                xhr.send(params);
+            });
+    
+            document.getElementById('download-excel').addEventListener('click', () => {
+                const form = document.getElementById('registro-form');
+                const formData = new FormData(form);
+                formData.append('download_excel', 'true');
+    
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '{% url "registro_horas_extras" %}', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                xhr.responseType = 'arraybuffer';
+    
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const blob = new Blob([xhr.response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'horas_extras.xlsx';
+                        link.click();
+                    } else {
+                        console.error('Falha na requisição:', xhr.statusText);
+                    }
+                };
+    
+                const params = new URLSearchParams();
+                formData.forEach((value, key) => params.append(key, value));
+                xhr.send(params);
+            });
+
+            document.getElementById('salvar-pdf').addEventListener('click', () => {
+                const form = document.getElementById('registro-form');
+                const formData = new FormData(form);
+                formData.append('download_pdf', 'true');
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '{% url "registro_horas_extras" %}', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                xhr.responseType = 'arraybuffer';
+
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const blob = new Blob([xhr.response], { type: 'application/pdf' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'horas_extras.pdf';
+                        link.click();
+                    } else {
+                        console.error('Falha na requisição:', xhr.statusText);
+                    }
+                };
+
+                const params = new URLSearchParams();
+                formData.forEach((value, key) => params.append(key, value));
+                xhr.send(params);
+            });
+        });
+        
+    </script>
+{% endblock %}
