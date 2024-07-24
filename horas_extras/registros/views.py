@@ -56,18 +56,18 @@ def registro_horas_extras(request):
                 he80_qtde_noturno = float(form.cleaned_data["he80_qtde_noturno"])
                 he100_qtde = float(form.cleaned_data["he100_qtde"])
 
-                he60_valor = 1
-                he80_valor = 20 * 1.8 * he80_qtde
-                he80_valor_noturno = (20 * 1.8 * 1.3) * (he80_qtde_noturno * 1.1428571)
-                he100_valor = 20 * 2 * he100_qtde
+                he60_valor = 1.0
+                he80_valor = salario_por_hora * 1.8 * he80_qtde
+                he80_valor_noturno = (salario_por_hora * 1.8 * 1.3) * (he80_qtde_noturno * 1.1428571)
+                he100_valor = salario_por_hora * 2 * he100_qtde
 
                 refl_dsr = ((he60_valor + he80_valor + he80_valor_noturno + he100_valor) / dias_uteis) * dsr
                 total_he = he60_valor + he80_valor + he80_valor_noturno + he100_valor + refl_dsr
                 
-                decimo_terceiro = salario_por_hora / 12
-                ferias = salario_por_hora / 12
+                decimo_terceiro = (salario_por_hora * total_he) / 12
+                ferias = (salario_por_hora * total_he) / 12
                 um_terco_ferias = ferias / 3
-                fgts = (salario_por_hora + decimo_terceiro + ferias + um_terco_ferias) * 0.08
+                fgts = (total_he + decimo_terceiro + ferias + um_terco_ferias) * 0.08
 
                 ferias_faturado = total_he / 12 * 1.333333
                 decimo_terceiro_faturado = total_he / 12
@@ -171,6 +171,7 @@ def registro_horas_extras(request):
         form.fields['nome_funcionario'].choices = choices
     
     return render(request, 'registro_horas_extras.html', {'form': form, 'names': nomes_funcionarios})
+
 
 def sucesso(request):
     return render(request, 'sucesso.html')
