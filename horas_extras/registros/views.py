@@ -1,3 +1,5 @@
+#registros/views.py
+
 import pandas as pd
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
@@ -46,6 +48,9 @@ def registro_horas_extras(request):
             if not pessoa_selecionada.empty:
                 salario = pessoa_selecionada.iloc[0]['Salário']
                 carga_horaria = pessoa_selecionada.iloc[0]['Carga Horária']
+
+                salario = float(salario)
+                carga_horaria = float(carga_horaria)
                 
                 salario_por_hora = salario / carga_horaria
                 dias_uteis = int(form.cleaned_data["dias_uteis"])
@@ -80,6 +85,8 @@ def registro_horas_extras(request):
 
                 dados = {
                     'Nome do Funcionário': nome_funcionario,
+                    'Salário': round(salario, 2),
+                    'Carga Horária': round(carga_horaria, 2),
                     'Salário por Hora': round(salario_por_hora, 2),
                     'Décimo Terceiro': round(decimo_terceiro, 2),
                     'Férias': round(ferias, 2),
@@ -103,21 +110,23 @@ def registro_horas_extras(request):
                     width, height = letter
 
                     p.drawString(100, height - 100, f'Nome do Funcionário: {dados["Nome do Funcionário"]}')
-                    p.drawString(100, height - 120, f'Salário por Hora: {dados["Salário por Hora"]}')
-                    p.drawString(100, height - 140, f'Décimo Terceiro: {dados["Décimo Terceiro"]}')
-                    p.drawString(100, height - 160, f'Férias: {dados["Férias"]}')
-                    p.drawString(100, height - 180, f'1/3 de Férias: {dados["1/3 de Férias"]}')
-                    p.drawString(100, height - 200, f'FGTS: {dados["FGTS"]}')
-                    p.drawString(100, height - 220, f'Reflexo DSR: {dados["Reflexo DSR"]}')
-                    p.drawString(100, height - 240, f'Total de Horas Extras: {dados["Total de Horas Extras"]}')
-                    p.drawString(100, height - 260, f'Férias Faturado: {dados["Férias Faturado"]}')
-                    p.drawString(100, height - 280, f'Décimo Terceiro Faturado: {dados["Décimo Terceiro Faturado"]}')
-                    p.drawString(100, height - 300, f'INSS: {dados["INSS"]}')
-                    p.drawString(100, height - 320, f'FGTS Faturado: {dados["FGTS Faturado"]}')
-                    p.drawString(100, height - 340, f'Total Faturado: {dados["Total Faturado"]}')
-                    p.drawString(100, height - 360, f'FGTS 40%: {dados["FGTS 40%"]}')
-                    p.drawString(100, height - 380, f'Total Absoluto: {dados["Total Absoluto"]}')
-                    p.drawString(100, height - 400, f'Valor da Nota: {dados["Valor da Nota"]}')
+                    p.drawString(100, height - 120, f'Salário: {dados["Salário"]}')
+                    p.drawString(100, height - 140, f'Carga Horária: {dados["Carga Horária"]}')
+                    p.drawString(100, height - 160, f'Salário por Hora: {dados["Salário por Hora"]}')
+                    p.drawString(100, height - 180, f'Décimo Terceiro: {dados["Décimo Terceiro"]}')
+                    p.drawString(100, height - 200, f'Férias: {dados["Férias"]}')
+                    p.drawString(100, height - 220, f'1/3 de Férias: {dados["1/3 de Férias"]}')
+                    p.drawString(100, height - 240, f'FGTS: {dados["FGTS"]}')
+                    p.drawString(100, height - 260, f'Reflexo DSR: {dados["Reflexo DSR"]}')
+                    p.drawString(100, height - 280, f'Total de Horas Extras: {dados["Total de Horas Extras"]}')
+                    p.drawString(100, height - 300, f'Férias Faturado: {dados["Férias Faturado"]}')
+                    p.drawString(100, height - 320, f'Décimo Terceiro Faturado: {dados["Décimo Terceiro Faturado"]}')
+                    p.drawString(100, height - 340, f'INSS: {dados["INSS"]}')
+                    p.drawString(100, height - 360, f'FGTS Faturado: {dados["FGTS Faturado"]}')
+                    p.drawString(100, height - 380, f'Total Faturado: {dados["Total Faturado"]}')
+                    p.drawString(100, height - 400, f'FGTS 40%: {dados["FGTS 40%"]}')
+                    p.drawString(100, height - 420, f'Total Absoluto: {dados["Total Absoluto"]}')
+                    p.drawString(100, height - 440, f'Valor da Nota: {dados["Valor da Nota"]}')
 
                     p.showPage()
                     p.save()
@@ -171,7 +180,6 @@ def registro_horas_extras(request):
         form.fields['nome_funcionario'].choices = choices
     
     return render(request, 'registro_horas_extras.html', {'form': form, 'names': nomes_funcionarios})
-
 
 def sucesso(request):
     return render(request, 'sucesso.html')
