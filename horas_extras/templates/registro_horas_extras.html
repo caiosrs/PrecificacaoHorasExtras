@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Registro de Horas Extras{% endblock %}
+{% block title %}Cálculo de valor de Horas Extras{% endblock %}
 
 {% block content %}
     {% load static %}
-    <h1 class="mt-5">Registro de Horas Extras</h1>
+    <h1 class="mt-5">Cálculo de valor de Horas Extras</h1>
     <form method="post" id="registro-form" class="mt-3" style="padding: 20px;">
         {% csrf_token %}
         <div class="form-group">
@@ -74,6 +74,14 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr>
+                                <td>Salário</td>
+                                <td id="salario"></td>
+                            </tr>
+                            <tr>
+                                <td>Carga Horária</td>
+                                <td id="carga-horaria"></td>
+                            </tr>
                             <tr>
                                 <td>Reflexo DSR</td>
                                 <td id="refl-dsr"></td>
@@ -222,6 +230,7 @@
                 if (typeof value === 'number') {
                     return value.toFixed(2).replace('.', ',');
                 }
+                console.log(value);
                 return value;
             }
     
@@ -231,11 +240,14 @@
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', '{% url "registro_horas_extras" %}', true);
                 xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-    
+
                 xhr.onload = function() {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         const result = JSON.parse(xhr.responseText);
-    
+                        console.log(result);
+
+                        document.getElementById('salario').textContent = formatNumber(result['Salário']) || 'N/A';
+                        document.getElementById('carga-horaria').textContent = formatNumber(result['Carga Horária']) || 'N/A';
                         document.getElementById('refl-dsr').textContent = formatNumber(result['Reflexo DSR']) || 'N/A';
                         document.getElementById('total-he').textContent = formatNumber(result['Total de Horas Extras']) || 'N/A';
                         document.getElementById('decimo-terceiro').textContent = formatNumber(result['Décimo Terceiro']) || 'N/A';
@@ -250,29 +262,29 @@
                         document.getElementById('fgst-40').textContent = formatNumber(result['FGTS 40%']) || 'N/A';
                         document.getElementById('total-absoluto').textContent = formatNumber(result['Total Absoluto']) || 'N/A';
                         document.getElementById('valor-nota').textContent = formatNumber(result['Valor da Nota']) || 'N/A';
-    
+
                         $('#calcularModal').modal('show');
                     } else {
                         console.error('Falha na requisição:', xhr.statusText);
                     }
                 };
-    
+
                 const params = new URLSearchParams();
                 formData.forEach((value, key) => params.append(key, value));
                 xhr.send(params);
             });
+        });
     
             document.getElementById('download-excel').addEventListener('click', () => {
                 const form = document.getElementById('registro-form');
                 const formData = new FormData(form);
                 formData.append('download_excel', 'true');
-    
+
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', '{% url "registro_horas_extras" %}', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                 xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
                 xhr.responseType = 'arraybuffer';
-    
+
                 xhr.onload = function() {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         const blob = new Blob([xhr.response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -284,7 +296,7 @@
                         console.error('Falha na requisição:', xhr.statusText);
                     }
                 };
-    
+
                 const params = new URLSearchParams();
                 formData.forEach((value, key) => params.append(key, value));
                 xhr.send(params);
@@ -297,7 +309,6 @@
 
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', '{% url "registro_horas_extras" %}', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                 xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
                 xhr.responseType = 'arraybuffer';
 
@@ -317,7 +328,6 @@
                 formData.forEach((value, key) => params.append(key, value));
                 xhr.send(params);
             });
-        });
         
     </script>
 {% endblock %}
