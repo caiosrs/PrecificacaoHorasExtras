@@ -152,7 +152,7 @@
                                         </tr>
                                         <tr>
                                             <td>Valor da Nota</td>
-                                            <td id="valor-nota"></td>
+                                            <td id="valor-nota"><strong></strong></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -332,7 +332,7 @@
                 document.getElementById('total-faturado').textContent = formatNumber(result['Total Faturado']) || 'N/A';
                 document.getElementById('fgst-40').textContent = formatNumber(result['FGTS 40%']) || 'N/A';
                 document.getElementById('total-absoluto').textContent = formatNumber(result['Total Absoluto']) || 'N/A';
-                document.getElementById('valor-nota').textContent = formatNumber(result['Valor da Nota']) || 'N/A';
+                document.getElementById('valor-nota').innerHTML = `<strong>${formatNumber(result['Valor da Nota']) || 'N/A'}</strong>`;
 
                 // Atualiza o título da modal com o nome do funcionário
                 document.getElementById('calcularModalLabel').textContent = `Resultado do Cálculo do Funcionário: ${nomeFuncionario}`;
