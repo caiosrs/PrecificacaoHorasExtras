@@ -12,7 +12,7 @@ from openpyxl import load_workbook
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Table, TableStyle, SimpleDocTemplate
+from reportlab.platypus import Image, Table, TableStyle, SimpleDocTemplate, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import Paragraph
 from datetime import datetime
@@ -62,6 +62,23 @@ def desenhar_tabela(pdf_canvas, dados):
     title = Paragraph('Cálculo do valor de Horas Extras', title_style)
     subtitle = Paragraph(f'Gerado em: {data_hora}', subtitle_style)
 
+    # Carrega a imagem
+    image_path = r"D:\1Desktop\Documentos\My Web Sites\App py\ProjetoCastan\horas_extras\static\img\informatec_servicos_em_rh.jpg"
+    image = Image(image_path)
+    image.drawHeight = 1 * inch
+    image.drawWidth = 2 * inch 
+
+    # Cria uma tabela para alinhar a imagem ao lado do título e subtítulo
+    header_table = Table([[image, [title, subtitle]]], colWidths=[2.5 * inch, 2.5 * inch])
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (0, 0), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (3, 3), (-1, -1), 0),
+    ]))
+
     # Dados da tabela
     data = [['Descrição', 'Valor']]
     data += [[chave, formatar_numero(valor)] if isinstance(valor, (int, float)) else [chave, valor] for chave, valor in dados.items()]
@@ -78,7 +95,7 @@ def desenhar_tabela(pdf_canvas, dados):
         ('BACKGROUND', (-1, -1), (-1, -1), colors.yellow)
     ]))
 
-    elements = [title, subtitle, table]
+    elements = [header_table, Spacer(1, 0.5 * inch), table]
     pdf_canvas.build(elements)
 
 @csrf_exempt
@@ -165,8 +182,10 @@ def registro_horas_extras(request):
                     
                     # Preparar a resposta
                     buffer.seek(0)
+                    data_formatada = datetime.now().strftime('%d-%m-%Y')
+                    nome_arquivo_pdf = f"Calculo-HE_{nome_funcionario}_{data_formatada}.pdf"
                     response = HttpResponse(buffer, content_type='application/pdf')
-                    response['Content-Disposition'] = 'attachment; filename="horas_extras.pdf"'
+                    response['Content-Disposition'] = f'attachment; filename="{nome_arquivo_pdf}"'
                     return response
 
                 if 'download_excel' in request.POST:
@@ -180,8 +199,10 @@ def registro_horas_extras(request):
                         temp_file_path = temp_file.name
 
                     with open(temp_file_path, 'rb') as excel_file:
+                        data_formatada = datetime.now().strftime('%d-%m-%Y')
+                        nome_arquivo_excel = f"Calculo-HE_{nome_funcionario}_{data_formatada}.xlsx"
                         response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                        response['Content-Disposition'] = 'attachment; filename="resultados_calculos.xlsx"'
+                        response['Content-Disposition'] = f'attachment; filename="{nome_arquivo_excel}"'
 
                     os.remove(temp_file_path)
                     return response
