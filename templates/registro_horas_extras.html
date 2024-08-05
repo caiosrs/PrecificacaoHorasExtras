@@ -348,59 +348,65 @@
         xhr.send(params);
     });
 
-            document.getElementById('download-excel').addEventListener('click', () => {
-                const form = document.getElementById('registro-form');
-                const formData = new FormData(form);
-                formData.append('download_excel', 'true');
+    document.getElementById('download-excel').addEventListener('click', () => {
+        const form = document.getElementById('registro-form');
+        const formData = new FormData(form);
+        const nomeFuncionario = formData.get('nome_funcionario');
+        const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+        const nomeArquivoExcel = `Calculo-HE_${nomeFuncionario}_${dataAtual}.xlsx`;
 
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '{% url "registro_horas_extras" %}', true);
-                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-                xhr.responseType = 'arraybuffer';
+        formData.append('download_excel', 'true');
 
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        const blob = new Blob([xhr.response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = 'horas_extras.xlsx';
-                        link.click();
-                    } else {
-                        console.error('Falha na requisição:', xhr.statusText);
-                    }
-                };
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "registro_horas_extras" %}', true);
+        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+        xhr.responseType = 'arraybuffer';
 
-                const params = new URLSearchParams();
-                formData.forEach((value, key) => params.append(key, value));
-                xhr.send(params);
-            });
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const blob = new Blob([xhr.response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = nomeArquivoExcel;
+                link.click();
+            } else {
+                console.error('Falha na requisição:', xhr.statusText);
+            }
+        };
 
-            document.getElementById('salvar-pdf').addEventListener('click', () => {
-                const form = document.getElementById('registro-form');
-                const formData = new FormData(form);
-                formData.append('download_pdf', 'true');
+        xhr.send(formData);
+    });
 
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '{% url "registro_horas_extras" %}', true);
-                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-                xhr.responseType = 'arraybuffer';
+    document.getElementById('salvar-pdf').addEventListener('click', () => {
+        const form = document.getElementById('registro-form');
+        const formData = new FormData(form);
+        const nomeFuncionario = formData.get('nome_funcionario');
+        const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+        const nomeArquivoPdf = `Calculo-HE_${nomeFuncionario}_${dataAtual}.pdf`;
 
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        const blob = new Blob([xhr.response], { type: 'application/pdf' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = 'horas_extras.pdf';
-                        link.click();
-                    } else {
-                        console.error('Falha na requisição:', xhr.statusText);
-                    }
-                };
+        formData.append('download_pdf', 'true');
 
-                const params = new URLSearchParams();
-                formData.forEach((value, key) => params.append(key, value));
-                xhr.send(params);
-            });
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "registro_horas_extras" %}', true);
+        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const blob = new Blob([xhr.response], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = nomeArquivoPdf;
+                link.click();
+            } else {
+                console.error('Falha na requisição:', xhr.statusText);
+            }
+        };
+
+        xhr.send(formData);
+    });
+
+
 
             document.getElementById('limpar-btn').addEventListener('click', () => {
                 const form = document.getElementById('registro-form');
