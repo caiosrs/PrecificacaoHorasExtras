@@ -20,11 +20,43 @@ from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
+def sucesso(request):
+    return render(request, 'sucesso.html')
+
+def get_salario(request):
+    if request.method == 'GET':
+        nome_funcionario = request.GET.get('nome_funcionario', '')
+        logger.info(f"Buscando salário para o funcionário: {nome_funcionario}")  # Log para depuração
+        
+        # Caminho absoluto para o arquivo Excel
+        excel_path = os.path.join(os.path.dirname(__file__), r'\\10.1.1.2\ti\BaseCalculos\Funcionários.xlsx')
+        
+        try:
+            # Carregar dados dos funcionários do arquivo Excel
+            funcionarios_df = pd.read_excel(excel_path)
+            logger.info(f"Planilha carregada com sucesso: {excel_path}")  # Log para depuração
+            
+            # Buscar o salário do funcionário selecionado
+            pessoa_selecionada = funcionarios_df[funcionarios_df['Nome do funcionário'] == nome_funcionario]
+            
+            if not pessoa_selecionada.empty:
+                salario = pessoa_selecionada.iloc[0]['Salário']
+                logger.info(f"Salário encontrado: {salario}")  # Log para depuração
+                return JsonResponse({'salario': salario})
+            else:
+                logger.warning(f"Funcionário não encontrado: {nome_funcionario}")  # Log para depuração
+                return JsonResponse({'error': 'Funcionário não encontrado.'}, status=404)
+        except Exception as e:
+            logger.error(f"Erro ao processar a requisição: {str(e)}")  # Log para depuração
+            return JsonResponse({'error': 'Erro interno no servidor.'}, status=500)
+    else:
+        return JsonResponse({'error': 'Método não permitido.'}, status=405)
+
 def autocomplete_funcionarios(request):
     if request.method == 'GET':
         term = request.GET.get('term', '')
         # Caminho absoluto para o arquivo Excel
-        excel_path = os.path.join(os.path.dirname(__file__), r'D:\1Desktop\Documentos\My Web Sites\App py\ProjetoCastan\Funcionários.xlsx')
+        excel_path = os.path.join(os.path.dirname(__file__), r'\\10.1.1.2\ti\BaseCalculos\Funcionários.xlsx')
         
         # Carregar dados dos funcionários do arquivo Excel
         funcionarios_df = pd.read_excel(excel_path)
@@ -63,7 +95,7 @@ def desenhar_tabela(pdf_canvas, dados):
     subtitle = Paragraph(f'Gerado em: {data_hora}', subtitle_style)
 
     # Carrega a imagem
-    image_path = r"D:\1Desktop\Documentos\My Web Sites\App py\ProjetoCastan\horas_extras\static\img\informatec_servicos_em_rh.jpg"
+    image_path = r"\\10.1.1.2\ti\BaseCalculos\static\img\logotipo_principal.png"
     image = Image(image_path)
     image.drawHeight = 1 * inch
     image.drawWidth = 2 * inch 
@@ -104,21 +136,23 @@ def registro_horas_extras(request):
         form = RegistroHorasExtrasForm(request.POST)
         if form.is_valid():
             nome_funcionario = form.cleaned_data['nome_funcionario']
+            salario = form.cleaned_data['salario']  # Pegar o valor do campo de salário
+
+            # Converter o salário de "4.063,00" para "4063.00"
+            salario = salario.replace('.', '').replace(',', '.')
+            salario = float(salario)  # Agora pode ser convertido para float
 
             # Caminho absoluto para o arquivo Excel
-            excel_path = os.path.join(os.path.dirname(__file__), r'D:\1Desktop\Documentos\My Web Sites\App py\ProjetoCastan\Funcionários.xlsx')
-
+            excel_path = os.path.join(os.path.dirname(__file__), r'\\10.1.1.2\ti\BaseCalculos\Funcionários.xlsx')
+            
             # Carregar dados dos funcionários do arquivo Excel
             funcionarios_df = pd.read_excel(excel_path)
-
+            
             # Buscar informações da pessoa selecionada
             pessoa_selecionada = funcionarios_df[funcionarios_df['Nome do funcionário'] == nome_funcionario]
 
             if not pessoa_selecionada.empty:
-                salario = pessoa_selecionada.iloc[0]['Salário']
                 carga_horaria = pessoa_selecionada.iloc[0]['Carga Horária']
-
-                salario = float(salario)
                 carga_horaria = float(carga_horaria)
                 
                 salario_por_hora = salario / carga_horaria
@@ -130,7 +164,7 @@ def registro_horas_extras(request):
                 he80_qtde_noturno = float(form.cleaned_data["he80_qtde_noturno"])
                 he100_qtde = float(form.cleaned_data["he100_qtde"])
 
-                he60_valor = 1.0
+                he60_valor = salario_por_hora * 1.6 * he60_qtde
                 he80_valor = salario_por_hora * 1.8 * he80_qtde
                 he80_valor_noturno = (salario_por_hora * 1.8 * 1.3) * (he80_qtde_noturno * 1.1428571)
                 he100_valor = salario_por_hora * 2 * he100_qtde
@@ -212,9 +246,11 @@ def registro_horas_extras(request):
             else:
                 return JsonResponse({'error': 'Funcionário não encontrado.'}, status=404)
         else:
-            return JsonResponse({'error': 'Formulário inválido.'}, status=400)
+            # Adicionar logs para depuração
+            logger.error(f"Formulário inválido: {form.errors}")
+            return JsonResponse({'error': 'Formulário inválido.', 'details': form.errors}, status=400)
     else:
-        excel_path = os.path.join(os.path.dirname(__file__), r'D:\1Desktop\Documentos\My Web Sites\App py\ProjetoCastan\Funcionários.xlsx')
+        excel_path = os.path.join(os.path.dirname(__file__), r'\\10.1.1.2\ti\BaseCalculos\Funcionários.xlsx')
         funcionarios_df = pd.read_excel(excel_path)
         nomes_funcionarios = funcionarios_df['Nome do funcionário'].tolist()
         
@@ -224,6 +260,3 @@ def registro_horas_extras(request):
         form.fields['nome_funcionario'].choices = choices
     
     return render(request, 'registro_horas_extras.html', {'form': form, 'names': nomes_funcionarios})
-
-def sucesso(request):
-    return render(request, 'sucesso.html')

@@ -4,7 +4,7 @@
 
 {% block content %}
     {% load static %}
-    <h1 class="mt-5">Cálculo de valor de Horas Extras</h1>
+    <h1 class="mt-5">Cálculo de Valor de Horas Extras</h1>
     <form method="post" id="registro-form" class="mt-3" style="padding: 20px;">
         {% csrf_token %}
         <div class="form-group">
@@ -12,6 +12,14 @@
             <input type="text" class="form-control" id="id_nome_funcionario" name="nome_funcionario" placeholder="Comece a digitar o nome...">
             <div id="autocomplete-suggestions" class="autocomplete-suggestions"></div>
         </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">R$</span>
+            </div>
+            <input type="text" class="form-control" placeholder="0.000,00" id="id_salario" name="salario">
+        </div>
+
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="id_dias_uteis">Dias Úteis</label>
@@ -178,6 +186,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const input = document.getElementById('id_nome_funcionario');
+            const salarioInput = document.getElementById('id_salario');
             const suggestionsContainer = document.getElementById('autocomplete-suggestions');
             let currentFocus = -1;
 
@@ -197,6 +206,8 @@
                     div.addEventListener('click', () => {
                         input.value = suggestion;
                         suggestionsContainer.innerHTML = '';
+                        // Buscar o salário do funcionário selecionado
+                        fetchSalario(suggestion);
                     });
                     div.addEventListener('mouseover', () => {
                         currentFocus = index;
@@ -206,11 +217,22 @@
                 });
             }
 
-            function updateSuggestionHighlight() {
-                const items = suggestionsContainer.querySelectorAll('.autocomplete-suggestion');
-                items.forEach((item, index) => {
-                    item.classList.toggle('highlight', index === currentFocus);
-                });
+            function fetchSalario(nomeFuncionario) {
+                fetch(`/registros/get_salario/?nome_funcionario=${encodeURIComponent(nomeFuncionario)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro na requisição');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.salario) {
+                            document.getElementById('id_salario').value = data.salario;
+                        } else if (data.error) {
+                            console.error(data.error);  // Exibe o erro no console
+                        }
+                    })
+                    .catch(error => console.error('Erro ao buscar salário:', error));
             }
 
             input.addEventListener('input', () => {

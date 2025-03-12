@@ -8,4 +8,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('calcular-he/', include('registros.urls')),
     path('', RedirectView.as_view(url='/calcular-he/')),
+    path('registros/', include('registros.urls')),
 ]

@@ -1,15 +1,19 @@
-#registros/forms.py
+# registros/forms.py
 
+import pandas as pd
 from django import forms
 from .models import RegistroHorasExtras
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
+import os
 
 class RegistroHorasExtrasForm(forms.ModelForm):
     class Meta:
         model = RegistroHorasExtras
-        fields = ['nome_funcionario', 'dias_uteis', 'dsr', 'he60_qtde', 'he80_qtde', 'he80_qtde_noturno', 'he100_qtde']
+        fields = ['nome_funcionario', 'salario', 'dias_uteis', 'dsr', 'he60_qtde', 'he80_qtde', 'he80_qtde_noturno', 'he100_qtde']
 
+    nome_funcionario = forms.ChoiceField(choices=[])  # Inicialmente vazio
+    salario = forms.CharField(max_length=100)
     dias_uteis = forms.IntegerField(label='Dias Úteis')
     dsr = forms.FloatField(label='DSR')
 
@@ -21,6 +25,12 @@ class RegistroHorasExtrasForm(forms.ModelForm):
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
+
+        # Carregar as opções do campo nome_funcionario dinamicamente
+        excel_path = os.path.join(os.path.dirname(__file__), r'\\10.1.1.2\ti\BaseCalculos\Funcionários.xlsx')
+        funcionarios_df = pd.read_excel(excel_path)
+        nomes_funcionarios = funcionarios_df['Nome do funcionário'].tolist()
+        self.fields['nome_funcionario'].choices = [(nome, nome) for nome in nomes_funcionarios]
 
     def clean(self):
         cleaned_data = super().clean()
