@@ -18,6 +18,7 @@
 .autocomplete-suggestion:hover {
     background-color: #ddd;
 }
-.autocomplete-suggestion.highlight {
-    background-color: #b3b3b3;
+.autocomplete-suggestion-highlighted {
+    background-color: #f0f0f0;
+    font-weight: bold;
 }

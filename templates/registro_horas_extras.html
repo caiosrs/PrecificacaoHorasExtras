@@ -259,13 +259,25 @@
                     input.value = items[currentFocus] ? items[currentFocus].textContent : '';
                 } else if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (currentFocus > -1) {
-                        if (items[currentFocus]) {
-                            items[currentFocus].click();
-                        }
+                    if (currentFocus > -1 && items[currentFocus]) {
+                        input.value = items[currentFocus].textContent;
+                        suggestionsContainer.innerHTML = '';
+                        // Buscar o salário do funcionário selecionado
+                        fetchSalario(input.value);
                     }
                 }
             });
+
+            function updateSuggestionHighlight() {
+                const items = suggestionsContainer.querySelectorAll('.autocomplete-suggestion');
+                items.forEach((item, index) => {
+                    if (index === currentFocus) {
+                        item.classList.add('autocomplete-suggestion-highlighted');
+                    } else {
+                        item.classList.remove('autocomplete-suggestion-highlighted');
+                    }
+                });
+            }
 
             function formatNumber(value) {
                 if (typeof value === 'number') {

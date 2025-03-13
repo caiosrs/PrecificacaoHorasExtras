@@ -189,7 +189,11 @@ def registro_horas_extras(request):
                 dados = {
                     'Nome do Funcionário': nome_funcionario,
                     'Salário': round(salario, 2),
-                    'Carga Horária': round(carga_horaria, 2),
+                    'Qtd de Horas Extras 60%': round(he60_qtde, 2),
+                    'Qtd de Horas Extras 80%': round(he80_qtde, 2),
+                    'Qtd de Horas Extras 80% Noturno': round(he80_qtde_noturno, 2),
+                    'Qtd de Horas Extras 100%': round(he100_qtde, 2),
+                    #'Carga Horária': round(carga_horaria, 2),  # Removido do dicionário
                     'Salário por Hora': round(salario_por_hora, 2),
                     'Décimo Terceiro': round(decimo_terceiro, 2),
                     'Férias': round(ferias, 2),
@@ -241,8 +245,10 @@ def registro_horas_extras(request):
                     os.remove(temp_file_path)
                     return response
 
-                # Caso contrário, retorne os dados como JSON
-                return JsonResponse(dados)
+                # Caso contrário, retorne os dados como JSON, incluindo a carga horária apenas na modal
+                dados_json = dados.copy()
+                dados_json['Carga Horária'] = round(carga_horaria, 2)  # Adiciona a carga horária apenas para a modal
+                return JsonResponse(dados_json)
             else:
                 return JsonResponse({'error': 'Funcionário não encontrado.'}, status=404)
         else:
